@@ -14,18 +14,28 @@ local function table_to_lua(table, indent)
         for i = 1, indent * 4 do
             out = out .. ' '
         end
-        if type(v) == 'table' then
-            if type(k) == 'string' and k:find('%.') then
-                out = out .. '[\'' .. k .. '\'] = ' .. table_to_lua(v, indent + 1)
+        -- Create local copies to modify, leaving the loop 'k' and 'v' untouched
+        local current_k = k
+        local current_v = v
+        if type(current_v) == 'table' then
+            if type(current_k) == 'string' and current_k:find('%.') then
+                out = out .. '[\'' .. current_k .. '\'] = ' .. table_to_lua(current_v, indent + 1)
             else
-                out = out .. k .. ' = ' .. table_to_lua(v, indent + 1)
+                out = out .. current_k .. ' = ' .. table_to_lua(current_v, indent + 1)
             end
             out = out .. ','
         else
-            if type(v) == 'string' then v = "'" .. v .. "'" end
-            if type(v) == 'boolean' then v = tostring(v) end
-            if type(k) == 'number' then k = '' else k = k .. ' = ' end
-            out = out .. k .. v .. ','
+            if type(current_v) == 'string' then current_v = "'" .. current_v .. "'" end
+            if type(current_v) == 'boolean' then current_v = tostring(current_v) end
+            
+            -- Fix: Assigning to current_k instead of the loop variable k
+            if type(current_k) == 'number' then 
+                current_k = '' 
+            else 
+                current_k = current_k .. ' = ' 
+            end
+            
+            out = out .. current_k .. current_v .. ','
         end
     end
 
